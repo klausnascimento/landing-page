@@ -1,0 +1,111 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+model Servidor {
+  id                String   @id @default(uuid())
+  nome              String
+  email             String   @unique
+  cpf               String   @unique
+  cargo             String
+  formacaoAcademica String
+  competencias      String[]
+  idiomas           String[]
+  experiencia       String?
+  documentos        Documento[]
+  historico         HistoricoPerfil[]
+  usuario           Usuario  @relation(fields: [usuarioId], references: [id])
+  usuarioId         String   @unique
+  createdAt         DateTime @default(now())
+  updatedAt         DateTime @updatedAt
+
+  Notificacao Notificacao[]
+
+  Curso Curso[]
+}
+
+model Usuario {
+  id       String @id @default(uuid())
+  email    String @unique
+  senha    String
+  perfil   PerfilAcesso
+  servidor Servidor?
+
+  FiltroPesquisa FiltroPesquisa[]
+
+  Relatorio Relatorio[]
+}
+
+enum PerfilAcesso {
+  SERVIDOR
+  GESTOR
+}
+
+model Documento {
+  id         String   @id @default(uuid())
+  nome       String
+  tipo       String
+  url        String
+  servidor   Servidor @relation(fields: [servidorId], references: [id])
+  servidorId String
+  createdAt  DateTime @default(now())
+}
+
+model Notificacao {
+  id         String   @id @default(uuid())
+  mensagem   String
+  servidor   Servidor @relation(fields: [servidorId], references: [id])
+  servidorId String
+  lida       Boolean  @default(false)
+  createdAt  DateTime @default(now())
+}
+
+model FiltroPesquisa {
+  id            String   @id @default(uuid())
+  nome          String
+  criterios     Json
+  criadoPor     Usuario  @relation(fields: [usuarioId], references: [id])
+  usuarioId     String
+  createdAt     DateTime @default(now())
+}
+
+model Relatorio {
+  id         String   @id @default(uuid())
+  nome       String
+  tipo       String
+  conteudo   Json
+  criadoPor  Usuario  @relation(fields: [usuarioId], references: [id])
+  usuarioId  String
+  createdAt  DateTime @default(now())
+}
+
+model HistoricoPerfil {
+  id          String   @id @default(uuid())
+  servidor    Servidor @relation(fields: [servidorId], references: [id])
+  servidorId  String
+  alteracao   String
+  dataAlteracao DateTime @default(now())
+}
+
+model Curso {
+  id         String   @id @default(uuid())
+  nome       String
+  descricao  String?
+  dataInicio DateTime
+  dataFim    DateTime?
+  servidores Servidor[]
+}
+
+model IntegracaoSistema {
+  id           String @id @default(uuid())
+  nome         String
+  descricao    String?
+  endpoint     String
+  ativo        Boolean @default(true)
+  createdAt    DateTime @default(now())
+}
